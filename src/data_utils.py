@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import pickle
 
+
 class DataHelper:
     def __init__(self, data_dir, dataset_name, extend) -> None:
         # download data to specified dir if not already exist
@@ -14,9 +15,9 @@ class DataHelper:
             )
 
     def get_data(self):
-        with open(f"{self.data_path}/source-reference.pickle", 'rb') as handle1:
+        with open(f"{self.data_path}/source-reference.pickle", "rb") as handle1:
             source_reference = pickle.load(handle1)
-        with open(f"{self.data_path}/source-candidate.pickle", 'rb') as handle2:
+        with open(f"{self.data_path}/source-candidate.pickle", "rb") as handle2:
             source_candidate = pickle.load(handle2)
 
         hyps = []
@@ -53,7 +54,7 @@ class DataHelper:
             for x in l:
                 seg_score.append(x)
 
-        return hyps , refs, querys, scores, seg_score
+        return hyps, refs, querys, scores, seg_score
 
     def get_sample_level_data(self, hyps, refs, querys, name):
         hyp = []
@@ -62,35 +63,42 @@ class DataHelper:
 
         for x in hyps:
             for s in x:
-                if name == 'bq':
+                if name == "bq":
                     s = " ".join(s)
                 hyp.append(s)
         for x in refs:
             for s in x:
-                if name == 'bq':
+                if name == "bq":
                     s = " ".join(s)
                 ref.append(s)
         for x in querys:
             for s in x:
-                if name == 'bq':
+                if name == "bq":
                     s = " ".join(s)
                 query.append(s)
         return hyp, ref, query
 
     def get_dev_test_data(self, hyp, ref, query, seg_score):
 
-        hyp_dev = hyp[:len(hyp) // 10]
-        hyp_test = hyp[len(hyp) // 10:]
+        hyp_dev = hyp[: len(hyp) // 10]
+        hyp_test = hyp[len(hyp) // 10 :]
 
-        ref_dev = ref[:len(ref) // 10]
-        ref_test = ref[len(ref) // 10:]
+        ref_dev = ref[: len(ref) // 10]
+        ref_test = ref[len(ref) // 10 :]
 
-        query_dev = query[:len(query) // 10]
-        query_test = query[len(query) // 10:]
+        query_dev = query[: len(query) // 10]
+        query_test = query[len(query) // 10 :]
 
-        seg_score_dev = seg_score[:len(seg_score) // 10]
-        seg_score_test = seg_score[len(seg_score) // 10:]
+        seg_score_dev = seg_score[: len(seg_score) // 10]
+        seg_score_test = seg_score[len(seg_score) // 10 :]
 
-        return hyp_dev, hyp_test, ref_dev, ref_test, query_dev, query_test, seg_score_dev, seg_score_test
-
-
+        return (
+            hyp_dev,
+            hyp_test,
+            ref_dev,
+            ref_test,
+            query_dev,
+            query_test,
+            seg_score_dev,
+            seg_score_test,
+        )
