@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.9,<=3.11"
@@ -12,6 +13,11 @@ matplotlib = "^3.9.2"
 ipykernel = "^6.29.5"
 tqdm = "4.60.0"
 torch = {version = "^2.4.0+cu118", source = "torch"}
+transformers = "^4.44.2"
+pandas = "^2.2.2"
+rouge = "^1.0.1"
+scipy = "1.9"
+scikit-learn = "^1.5.2"
 
 [[tool.poetry.source]]
 name = "torch"
