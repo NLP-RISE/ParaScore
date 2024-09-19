@@ -1,6 +1,6 @@
 # FORKED PARASCORE
-
-#### This is a fork of the original ParaScore repository with a number of modifications/updates to run the code
+### :warning: :warning: Please read this!!! :warning: :warning:
+#### This is a FORK of the original ParaScore repository with a number of modifications/updates to run the code
 #### Note: No changes are made to the scoring method! The only changes are structural to make sure the scripts run.
 
 # On the Evaluation Metrics for Paraphrase Generation
