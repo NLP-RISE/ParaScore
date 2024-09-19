@@ -45,14 +45,14 @@ There're two pickles in each dataset, one contains source-reference pairs and th
 Here's a simple script for running our codes.
 
 ```bash
-python run.py \
+poetry run python3.9 main.py \
     --metric parascore \
     --model_type bert-base-uncased \
     --batch_size 16 \
     --dataset_name twitter \
-    --data_dir your data dir \
+    --data_dir data \
     --setting need \
-    --extend True \
+    --extend True
 ```
 
 We further explain some of the script's arguments:
