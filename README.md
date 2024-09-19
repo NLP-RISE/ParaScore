@@ -32,7 +32,8 @@ You can find more details of this work in our [paper](https://arxiv.org/abs/2202
 To run our code, please install all the dependency packages by using the following command:
 
 ```
-pip install -r requirements.txt
+poetry shell
+poetry install
 ```
 
 **NOTE**: Different versions of packages (like `pytorch`, `transformers`, etc.) may lead to little different results from the paper. However, the trend should still hold no matter what versions of packages you use.
