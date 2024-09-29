@@ -17,8 +17,10 @@ from src.baseline import (
 from src.data_utils import *
 from src.utils import *
 from scipy.stats import spearmanr, pearsonr, kendalltau
-
+from sentence_transformers import SentenceTransformer
 import nltk
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 nltk.download('punkt')
 nltk.download('wordnet')
 
@@ -33,6 +35,11 @@ def score_all_free(args, query: list, hyp: list):
         "selfibleu",
         "parascore",
         "bartscore",
+        "emb-manhattan",
+        "emb-cosine",
+        "emb-dot",
+        "emb-euclidean",
+        "nli"
     ]
     assert (
         args.metric in available_metrics
@@ -42,7 +49,7 @@ def score_all_free(args, query: list, hyp: list):
         score = bert_score.score(
             query,
             hyp,
-            model_type=args.model_type,
+            model_type=args.model_type_bert,
             batch_size=args.batch_size,
         )
         score111 = score[2].cpu().numpy().tolist()
@@ -50,9 +57,7 @@ def score_all_free(args, query: list, hyp: list):
 
     elif args.metric == "bleu":
         for x, y in zip(query, hyp):
-            system_scores.append(cal_sen_bleu(x, y, args.dataset_name))
-
-            system_scores = cal_sen_meteor(query, hyp)
+            system_scores.append(cal_sen_bleu(x, y, None))
     elif args.metric == "meteor":
         system_scores = cal_sen_meteor(query, hyp)
     elif args.metric == "rougeL":
@@ -65,14 +70,14 @@ def score_all_free(args, query: list, hyp: list):
         score = bert_score.score(
             query,
             hyp,
-            model_type=args.model_type,
+            model_type=args.model_type_selfibleu,
             batch_size=args.batch_size,
         )
         score111 = score[2].cpu().numpy().tolist()
         s2 = []
         s1 = score111
         for x, y in zip(query, hyp):
-            s2.append(cal_sen_bleu(x, y, args.dataset_name))
+            s2.append(cal_sen_bleu(x, y, None))
         beta = args.beta
         system_scores = [
             (beta + 1) / (beta / a_i + 1 / (1 + b_i)) for a_i, b_i in zip(s1, s2)
@@ -81,7 +86,7 @@ def score_all_free(args, query: list, hyp: list):
         diversity = []
         thresh = 0.35
         for x, y in zip(query, hyp):
-            div = edit(x, y, args.dataset_name)
+            div = edit(x, y, None)
             if div >= thresh:
                 ss = thresh
             elif div < thresh:
@@ -90,17 +95,40 @@ def score_all_free(args, query: list, hyp: list):
         score = bert_score.score(
             query,
             hyp,
-            model_type=args.model_type,
+            model_type=args.model_type_parascore,
             batch_size=args.batch_size,
         )
         similarity = score[2].cpu().numpy().tolist()
-        system_scores = [a_i + 0.05 * b_i for a_i, b_i in zip(similarity, diversity)]
+        system_scores = [a_i + args.weight * b_i for a_i, b_i in zip(similarity, diversity)]
+
     elif args.metric == "bartscore":
         bart_scorer = BARTScorer(device="cuda", checkpoint="facebook/bart-large-cnn")
         bart_scorer.load(path="bart.pth")
         out = bart_scorer.score(query, hyp, batch_size=16)
         system_scores = out
 
+    elif args.metric.startswith("emb") and args.metric.split("-")[1] in ["manhattan", "euclidean", "dot", "cosine"]:
+        model = SentenceTransformer(args.model_type_emb, similarity_fn_name=args.metric.split("-")[1])
+        similarities = []
+        for q, h in zip(query, hyp):
+            similarities.append(float(model.similarity(model.encode(q), model.encode(h))[0][0]))
+        system_scores = similarities
+    
+    elif args.metric == "nli":
+        similarities = []
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+        model_name = args.model_type_nli
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
+
+        for q, h in zip(query, hyp):
+            input = tokenizer(q, h, truncation=True, return_tensors="pt")
+            output = model(input["input_ids"].to(device))
+            entailment = torch.softmax(output["logits"][0], -1).tolist()[0]
+            similarities.append(entailment)
+
+        system_scores = similarities
     return system_scores
 
 
