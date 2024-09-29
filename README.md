@@ -29,12 +29,14 @@ You can find more details of this work in our [paper](https://arxiv.org/abs/2202
 
 ## Requirements
 
-To run our code, please install all the dependency packages by using the following command:
+To run our code, please install all the dependency packages via poetry:
 
 ```
 poetry shell
 poetry install
 ```
+
+You can download `poetry` here: https://python-poetry.org/docs/#installing-with-the-official-installer
 
 **NOTE**: Different versions of packages (like `pytorch`, `transformers`, etc.) may lead to little different results from the paper. However, the trend should still hold no matter what versions of packages you use.
 
@@ -57,7 +59,7 @@ poetry run python3.9 main.py \
     --batch_size 16 \
     --dataset_name twitter \
     --data_dir data \
-    --setting need \
+    --setting free \
     --extend True
 ```
 
