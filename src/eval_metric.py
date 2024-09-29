@@ -18,6 +18,91 @@ from src.data_utils import *
 from src.utils import *
 from scipy.stats import spearmanr, pearsonr, kendalltau
 
+import nltk
+nltk.download('punkt')
+nltk.download('wordnet')
+
+def score_all_free(args, query: list, hyp: list):
+    """Scores data on all reference-free metrics"""
+    available_metrics = [
+        "bleu",
+        "meteor",
+        "rougeL",
+        "rouge1",
+        "rouge2",
+        "selfibleu",
+        "parascore",
+        "bartscore",
+    ]
+    assert (
+        args.metric in available_metrics
+    ), f"The selected metric is not available as a reference-free metric. Available metrics: {available_metrics}"
+    system_scores = []
+    if args.metric == "bert_score":
+        score = bert_score.score(
+            query,
+            hyp,
+            model_type=args.model_type,
+            batch_size=args.batch_size,
+        )
+        score111 = score[2].cpu().numpy().tolist()
+        system_scores = score111
+
+    elif args.metric == "bleu":
+        for x, y in zip(query, hyp):
+            system_scores.append(cal_sen_bleu(x, y, args.dataset_name))
+
+            system_scores = cal_sen_meteor(query, hyp)
+    elif args.metric == "meteor":
+        system_scores = cal_sen_meteor(query, hyp)
+    elif args.metric == "rougeL":
+        system_scores = cal_rougeL(query, hyp)
+    elif args.metric == "rouge1":
+        system_scores = cal_rouge1(query, hyp)
+    elif args.metric == "rouge2":
+        system_scores = cal_rouge2(query, hyp)
+    elif args.metric == "selfibleu":
+        score = bert_score.score(
+            query,
+            hyp,
+            model_type=args.model_type,
+            batch_size=args.batch_size,
+        )
+        score111 = score[2].cpu().numpy().tolist()
+        s2 = []
+        s1 = score111
+        for x, y in zip(query, hyp):
+            s2.append(cal_sen_bleu(x, y, args.dataset_name))
+        beta = args.beta
+        system_scores = [
+            (beta + 1) / (beta / a_i + 1 / (1 + b_i)) for a_i, b_i in zip(s1, s2)
+        ]
+    elif args.metric == "parascore":
+        diversity = []
+        thresh = 0.35
+        for x, y in zip(query, hyp):
+            div = edit(x, y, args.dataset_name)
+            if div >= thresh:
+                ss = thresh
+            elif div < thresh:
+                ss = -1 + ((thresh + 1) / thresh) * div
+            diversity.append(ss)
+        score = bert_score.score(
+            query,
+            hyp,
+            model_type=args.model_type,
+            batch_size=args.batch_size,
+        )
+        similarity = score[2].cpu().numpy().tolist()
+        system_scores = [a_i + 0.05 * b_i for a_i, b_i in zip(similarity, diversity)]
+    elif args.metric == "bartscore":
+        bart_scorer = BARTScorer(device="cuda", checkpoint="facebook/bart-large-cnn")
+        bart_scorer.load(path="bart.pth")
+        out = bart_scorer.score(query, hyp, batch_size=16)
+        system_scores = out
+
+    return system_scores
+
 
 def eval_metric(args):
     Dataloader = DataHelper(args.data_dir, args.dataset_name, args.extend)
