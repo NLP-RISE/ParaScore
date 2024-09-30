@@ -11,9 +11,9 @@ python = ">=3.9,<=3.11"
 nltk = "3.6.2"
 matplotlib = "^3.9.2"
 ipykernel = "^6.29.5"
-tqdm = "4.60.0"
+tqdm = "4.66.3"
 torch = {version = "^2.4.0+cu118", source = "torch"}
-transformers = "^4.44.2"
+transformers = {extras = ["torch"], version = "^4.45.1"}
 pandas = "^2.2.2"
 rouge = "^1.0.1"
 scipy = "1.9"
@@ -22,6 +22,8 @@ sentence-transformers = "^3.1.1"
 ipywidgets = "^8.1.5"
 sentencepiece = "^0.2.0"
 protobuf = "^5.28.2"
+datasets = "^3.0.1"
+evaluate = "^0.4.3"
 
 [[tool.poetry.source]]
 name = "torch"
